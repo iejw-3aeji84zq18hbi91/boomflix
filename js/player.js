@@ -273,7 +273,7 @@ const Player = {
 
     // Build player-frame URL with TV params if needed
     const selectedServer = serverConfigs[idx];
-    let playerUrl = `player-frame.html?v=4&id=${encodeURIComponent(this.movieId)}&source=${encodeURIComponent(selectedServer.id)}`;
+    let playerUrl = `player-frame.html?v=5&id=${encodeURIComponent(this.movieId)}&source=${encodeURIComponent(selectedServer.id)}`;
     if (this.mediaType === 'tv') {
       playerUrl += `&type=tv&season=${this.season}&episode=${this.episode}`;
     }
@@ -294,7 +294,7 @@ const Player = {
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;">
           <span style="color:#aaa;font-size:0.75rem;">Server:</span>
           ${serverConfigs.map((server, i) => {
-            let srvUrl = `player-frame.html?v=4&id=${encodeURIComponent(this.movieId)}&source=${encodeURIComponent(server.id)}`;
+            let srvUrl = `player-frame.html?v=5&id=${encodeURIComponent(this.movieId)}&source=${encodeURIComponent(server.id)}`;
             if (this.mediaType === 'tv') srvUrl += `&type=tv&season=${this.season}&episode=${this.episode}`;
             return `
             <button onclick="window.open('${srvUrl}','_blank')"

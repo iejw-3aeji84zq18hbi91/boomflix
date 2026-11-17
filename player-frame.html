@@ -148,7 +148,7 @@
 <button class="recovery-btn primary" id="quickSwitch" type="button" onclick="loadNextServer(true)">Cutting out? Next Source</button>
 <button class="recovery-btn" id="quickExit" type="button" onclick="toggleFullscreen()">Exit Fullscreen</button>
 
-<script src="js/config.js?v=4"></script>
+<script src="js/config.js?v=5"></script>
 <script>
 // =============================================
 // AD SHIELD — blocks popups, redirects, overlays
@@ -172,8 +172,8 @@
 window.open = function() { return null; };
 setInterval(function() { try { window.open = function() { return null; }; } catch(e){} }, 100);
 
-// Block focus stealing
-window.addEventListener('blur', function() { setTimeout(function() { window.focus(); }, 50); });
+// Clicking a cross-origin player blurs this window. Leave focus in the player
+// so its play, volume, and unmute controls keep the user's interaction.
 
 // Block redirects
 var safeHref = window.location.href;

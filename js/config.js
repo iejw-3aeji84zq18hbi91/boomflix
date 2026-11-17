@@ -5,11 +5,13 @@ const CONFIG = {
   TMDB_BASE: 'https://api.themoviedb.org/3',
   TMDB_IMG: 'https://image.tmdb.org/t/p',
 
-  // Streaming embed providers — health checked August 2026.
+  // Streaming embed providers.
   // Keep stable IDs so saved preferences survive provider reordering.
   // Order matters: the most responsive fallback is first.
+  // VidLink must start from a click inside its player: muted autoplay can
+  // otherwise pause when Safari enables audio.
   EMBED_SERVERS: [
-    { id: 'vidlink', name: 'Source 1', url: (id) => `https://vidlink.pro/movie/${id}` },
+    { id: 'vidlink', name: 'Source 1', url: (id) => `https://vidlink.pro/movie/${id}?autoplay=false` },
     { id: 'autoembed', name: 'Source 2', url: (id) => `https://autoembed.co/movie/tmdb/${id}` },
     { id: 'twoembed', name: 'Source 3', url: (id) => `https://www.2embed.cc/embed/${id}` },
     { id: 'multiembed', name: 'Source 4', url: (id) => `https://multiembed.mov/?video_id=${id}&tmdb=1` },
@@ -18,7 +20,7 @@ const CONFIG = {
 
   // TV show embed providers
   TV_EMBED_SERVERS: [
-    { id: 'vidlink', name: 'Source 1', url: (id, s, e) => `https://vidlink.pro/tv/${id}/${s}/${e}` },
+    { id: 'vidlink', name: 'Source 1', url: (id, s, e) => `https://vidlink.pro/tv/${id}/${s}/${e}?autoplay=false` },
     { id: 'autoembed', name: 'Source 2', url: (id, s, e) => `https://autoembed.co/tv/tmdb/${id}-${s}-${e}` },
     { id: 'vidsrcme', name: 'Source 3', url: (id, s, e) => `https://vidsrcme.ru/embed/tv/${id}/${s}/${e}` },
     { id: 'multiembed', name: 'Source 4', url: (id, s, e) => `https://multiembed.mov/?video_id=${id}&tmdb=1&s=${s}&e=${e}` },
