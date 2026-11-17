@@ -273,34 +273,34 @@ const Player = {
 
     // Build player-frame URL with TV params if needed
     const selectedServer = serverConfigs[idx];
-    let playerUrl = `player-frame.html?v=5&id=${encodeURIComponent(this.movieId)}&source=${encodeURIComponent(selectedServer.id)}`;
+    let playerUrl = `player-frame.html?v=6&id=${encodeURIComponent(this.movieId)}&source=${encodeURIComponent(selectedServer.id)}`;
     if (this.mediaType === 'tv') {
       playerUrl += `&type=tv&season=${this.season}&episode=${this.episode}`;
     }
 
     wrapper.innerHTML = `
       <div style="position:relative;width:100%;height:100%;background:#000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;">
-        <div style="text-align:center;">
-          <div onclick="window.open('${playerUrl}','_blank')" style="
+        <a href="${playerUrl}" class="player-launch" style="text-align:center;text-decoration:none;color:white;">
+          <div style="
             width:100px;height:100px;border-radius:50%;background:rgba(240,180,41,0.9);
             display:flex;align-items:center;justify-content:center;margin:0 auto 16px;cursor:pointer;
             transition:transform 0.2s;
           " onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="white" aria-hidden="true"><polygon points="5,3 19,12 5,21"/></svg>
           </div>
           <div style="color:white;font-size:1.2rem;font-weight:600;margin-bottom:8px;">Click to Watch</div>
-          <div style="color:#aaa;font-size:0.8rem;">Opens player with ad-blocking</div>
-        </div>
+          <div style="color:#aaa;font-size:0.8rem;">Play in this tab</div>
+        </a>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;">
           <span style="color:#aaa;font-size:0.75rem;">Server:</span>
           ${serverConfigs.map((server, i) => {
-            let srvUrl = `player-frame.html?v=5&id=${encodeURIComponent(this.movieId)}&source=${encodeURIComponent(server.id)}`;
+            let srvUrl = `player-frame.html?v=6&id=${encodeURIComponent(this.movieId)}&source=${encodeURIComponent(server.id)}`;
             if (this.mediaType === 'tv') srvUrl += `&type=tv&season=${this.season}&episode=${this.episode}`;
             return `
-            <button onclick="window.open('${srvUrl}','_blank')"
-              style="background:${i===idx?'#f0b429':'rgba(255,255,255,0.15)'};border:none;color:white;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:0.75rem;">
+            <a href="${srvUrl}" class="player-source"
+              style="background:${i===idx?'#f0b429':'rgba(255,255,255,0.15)'};border:none;color:white;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:0.75rem;text-decoration:none;">
               ${server.name}
-            </button>`;
+            </a>`;
           }).join('')}
         </div>
         <button onclick="Player.download()" style="background:#f0b429;border:none;color:#111;padding:8px 20px;border-radius:4px;cursor:pointer;font-size:0.85rem;font-weight:600;transition:opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">

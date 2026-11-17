@@ -151,7 +151,7 @@ function runPlayer(query, preferredSource) {
   };
 }
 
-function runLauncher(type, preferredSource) {
+function runLauncher(type, preferredSource, selection = {}) {
   const wrapper = element('playerWrapper');
   const context = {
     CONFIG,
@@ -166,10 +166,10 @@ function runLauncher(type, preferredSource) {
   vm.createContext(context);
   vm.runInContext(`${LAUNCHER_SCRIPT}; this.__PLAYER = Player;`, context);
   const player = context.__PLAYER;
-  player.movieId = type === 'tv' ? 4604 : 1957;
+  player.movieId = selection.id ?? (type === 'tv' ? 4604 : 1957);
   player.mediaType = type;
-  player.season = 1;
-  player.episode = 11;
+  player.season = selection.season ?? 1;
+  player.episode = selection.episode ?? 11;
   player.loadFallbackEmbed();
   return wrapper.innerHTML;
 }
@@ -269,25 +269,64 @@ for (const query of [
   assert.match(run.elements.sourceStatus.textContent, /No internet connection/);
 }
 
-{
-  const movieLauncher = runLauncher('movie', 'autoembed');
-  assert.match(movieLauncher, /source=autoembed/);
-  assert.match(movieLauncher, /player-frame\.html\?v=5/);
+for (const selection of [
+  { type: 'movie', id: 15356, source: 'twoembed' },
+  { type: 'tv', id: 39272, source: 'vidsrcme', season: 2, episode: 7 },
+]) {
+  const html = runLauncher(selection.type, selection.source, selection);
+  const links = [...html.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/gi)].map(match => ({
+    attributes: Object.fromEntries([...match[1].matchAll(/([\w-]+)="([^"]*)"/g)].map(attribute => [attribute[1], attribute[2]])),
+    content: match[2],
+    markup: match[0],
+  }));
+  const hasClass = (link, name) => (link.attributes.class || '').split(/\s+/).includes(name);
+  const primary = links.filter(link => hasClass(link, 'player-launch'));
+  assert.equal(primary.length, 1, 'the main Play control must be a normal navigation link');
+  assert.match(primary[0].content, /<svg\b/, 'the Play icon must be inside the main link');
+  assert.match(primary[0].content, /Click to Watch/, 'the Play label must be inside the same clickable link');
 
-  const tvLauncher = runLauncher('tv', 'vidsrcme');
-  assert.match(tvLauncher, /source=vidsrcme/);
-  assert.match(tvLauncher, /type=tv&season=1&episode=11/);
-  for (const launcher of [movieLauncher, tvLauncher]) {
-    const frameLinks = [...launcher.matchAll(/player-frame\.html\?v=(\d+)/g)];
-    assert(frameLinks.length > 1, 'the primary launcher and alternate source links must be present');
-    assert(frameLinks.every(match => match[1] === '5'), 'every launcher must use the updated player');
+  const servers = selection.type === 'tv' ? CONFIG.TV_EMBED_SERVERS : CONFIG.EMBED_SERVERS;
+  const sources = links.filter(link => hasClass(link, 'player-source'));
+  assert.equal(sources.length, servers.length, 'every source must have a normal navigation link');
+  const expectedSources = [selection.source, ...Array.from(servers, server => server.id)];
+  for (const [index, link] of [...primary, ...sources].entries()) {
+    assert(link.attributes.href, 'launch links need a navigable href');
+    assert(!link.attributes.target || link.attributes.target === '_self', 'launch links must use the current tab');
+    assert.doesNotMatch(link.markup, /\bonclick\s*=|window\.open\s*\(/i, 'launch links must not depend on popup handlers');
+    const url = new URL(link.attributes.href, 'https://example.test/boomflix/watch.html');
+    assert.equal(url.origin, 'https://example.test');
+    assert.equal(url.pathname, '/boomflix/player-frame.html');
+    assert.equal(url.searchParams.get('v'), '6');
+    assert.equal(url.searchParams.get('id'), String(selection.id));
+    assert.equal(url.searchParams.get('source'), expectedSources[index]);
+    if (selection.type === 'tv') {
+      assert.equal(url.searchParams.get('type'), 'tv');
+      assert.equal(url.searchParams.get('season'), String(selection.season));
+      assert.equal(url.searchParams.get('episode'), String(selection.episode));
+    } else {
+      assert.equal(url.searchParams.has('type'), false);
+      assert.equal(url.searchParams.has('season'), false);
+      assert.equal(url.searchParams.has('episode'), false);
+    }
+
+    // Follow the generated href through the real frame runtime. This catches
+    // source-index and movie/episode mismatches across the two entry points.
+    const run = runPlayer(url.search);
+    const server = servers.find(server => server.id === expectedSources[index]);
+    const expectedStream = selection.type === 'tv'
+      ? server.url(selection.id, selection.season, selection.episode)
+      : server.url(selection.id);
+    assert.equal(run.elements.player.children[0].src, expectedStream);
+    assert.equal(run.storage.get('emilyflixPreferredSource'), server.id);
   }
+}
 
+{
   const frameHtml = fs.readFileSync(path.join(root, 'player-frame.html'), 'utf8');
   const watchHtml = fs.readFileSync(path.join(root, 'watch.html'), 'utf8');
   assert.match(frameHtml, /src="js\/config\.js\?v=5"/);
   assert.match(watchHtml, /src="js\/config\.js\?v=5"/);
-  assert.match(watchHtml, /src="js\/player\.js\?v=5"/);
+  assert.match(watchHtml, /src="js\/player\.js\?v=6"/);
 }
 
 console.log('player-frame runtime tests passed');
