@@ -225,7 +225,26 @@ for (const query of [
 {
   const run = runPlayer('?id=4604&type=tv&season=1&episode=11&source=autoembed');
   assert.equal(run.context.currentServerIdx, 1);
-  assert.equal(run.elements.player.children[0].src, 'https://autoembed.co/tv/tmdb/4604-1-11');
+  assert.equal(run.elements.player.children[0].src, 'https://autoembed.me/tv/tmdb/4604-1-11');
+}
+
+const bigLoveSources = [
+  { source: 'autoembed', index: 1, stream: 'https://autoembed.me/tv/tmdb/4392-1-9' },
+  { source: 'vidsrcme', index: 2, stream: 'https://vidsrc.sh/embed/tv/4392/1/9' },
+];
+
+for (const expected of bigLoveSources) {
+  // Existing bookmarks and saved choices must reach the current providers
+  // without losing Big Love's selected episode or changing stable source IDs.
+  const episodeQuery = '?v=4&id=4392&type=tv&season=1&episode=9';
+  for (const run of [
+    runPlayer(episodeQuery + '&source=' + expected.source),
+    runPlayer(episodeQuery, expected.source),
+  ]) {
+    assert.equal(run.context.currentServerIdx, expected.index);
+    assert.equal(run.elements.player.children[0].src, expected.stream);
+    assert.equal(run.storage.get('emilyflixPreferredSource'), expected.source);
+  }
 }
 
 {
@@ -254,7 +273,7 @@ for (const query of [
   run.context.loadNextServer(true);
   const secondFrame = run.elements.player.children[0];
   assert.equal(run.context.currentServerIdx, 1);
-  assert.equal(secondFrame.src, 'https://autoembed.co/movie/tmdb/1957');
+  assert.equal(secondFrame.src, 'https://autoembed.me/movie/tmdb/1957');
   assert.equal(run.storage.get('emilyflixPreferredSource'), 'autoembed');
   assert.match(run.location.href, /source=autoembed/);
 
@@ -272,6 +291,10 @@ for (const query of [
 for (const selection of [
   { type: 'movie', id: 15356, source: 'twoembed' },
   { type: 'tv', id: 39272, source: 'vidsrcme', season: 2, episode: 7 },
+  ...bigLoveSources.map(expected => ({
+    type: 'tv', id: 4392, source: expected.source, season: 1, episode: 9,
+    expectedPrimaryStream: expected.stream,
+  })),
 ]) {
   const html = runLauncher(selection.type, selection.source, selection);
   const links = [...html.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/gi)].map(match => ({
@@ -296,7 +319,7 @@ for (const selection of [
     const url = new URL(link.attributes.href, 'https://example.test/boomflix/watch.html');
     assert.equal(url.origin, 'https://example.test');
     assert.equal(url.pathname, '/boomflix/player-frame.html');
-    assert.equal(url.searchParams.get('v'), '6');
+    assert.equal(url.searchParams.get('v'), '7');
     assert.equal(url.searchParams.get('id'), String(selection.id));
     assert.equal(url.searchParams.get('source'), expectedSources[index]);
     if (selection.type === 'tv') {
@@ -317,6 +340,9 @@ for (const selection of [
       ? server.url(selection.id, selection.season, selection.episode)
       : server.url(selection.id);
     assert.equal(run.elements.player.children[0].src, expectedStream);
+    if (index === 0 && selection.expectedPrimaryStream) {
+      assert.equal(run.elements.player.children[0].src, selection.expectedPrimaryStream);
+    }
     assert.equal(run.storage.get('emilyflixPreferredSource'), server.id);
   }
 }
@@ -324,9 +350,9 @@ for (const selection of [
 {
   const frameHtml = fs.readFileSync(path.join(root, 'player-frame.html'), 'utf8');
   const watchHtml = fs.readFileSync(path.join(root, 'watch.html'), 'utf8');
-  assert.match(frameHtml, /src="js\/config\.js\?v=5"/);
-  assert.match(watchHtml, /src="js\/config\.js\?v=5"/);
-  assert.match(watchHtml, /src="js\/player\.js\?v=6"/);
+  assert.match(frameHtml, /src="js\/config\.js\?v=7"/);
+  assert.match(watchHtml, /src="js\/config\.js\?v=7"/);
+  assert.match(watchHtml, /src="js\/player\.js\?v=7"/);
 }
 
 console.log('player-frame runtime tests passed');

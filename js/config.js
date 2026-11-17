@@ -12,7 +12,7 @@ const CONFIG = {
   // otherwise pause when Safari enables audio.
   EMBED_SERVERS: [
     { id: 'vidlink', name: 'Source 1', url: (id) => `https://vidlink.pro/movie/${id}?autoplay=false` },
-    { id: 'autoembed', name: 'Source 2', url: (id) => `https://autoembed.co/movie/tmdb/${id}` },
+    { id: 'autoembed', name: 'Source 2', url: (id) => `https://autoembed.me/movie/tmdb/${id}` },
     { id: 'twoembed', name: 'Source 3', url: (id) => `https://www.2embed.cc/embed/${id}` },
     { id: 'multiembed', name: 'Source 4', url: (id) => `https://multiembed.mov/?video_id=${id}&tmdb=1` },
     { id: 'videasy', name: 'Source 5', url: (id) => `https://player.videasy.to/movie/${id}` },
@@ -21,8 +21,8 @@ const CONFIG = {
   // TV show embed providers
   TV_EMBED_SERVERS: [
     { id: 'vidlink', name: 'Source 1', url: (id, s, e) => `https://vidlink.pro/tv/${id}/${s}/${e}?autoplay=false` },
-    { id: 'autoembed', name: 'Source 2', url: (id, s, e) => `https://autoembed.co/tv/tmdb/${id}-${s}-${e}` },
-    { id: 'vidsrcme', name: 'Source 3', url: (id, s, e) => `https://vidsrcme.ru/embed/tv/${id}/${s}/${e}` },
+    { id: 'autoembed', name: 'Source 2', url: (id, s, e) => `https://autoembed.me/tv/tmdb/${id}-${s}-${e}` },
+    { id: 'vidsrcme', name: 'Source 3', url: (id, s, e) => `https://vidsrc.sh/embed/tv/${id}/${s}/${e}` },
     { id: 'multiembed', name: 'Source 4', url: (id, s, e) => `https://multiembed.mov/?video_id=${id}&tmdb=1&s=${s}&e=${e}` },
     { id: 'videasy', name: 'Source 5', url: (id, s, e) => `https://player.videasy.to/tv/${id}/${s}/${e}` },
   ],
